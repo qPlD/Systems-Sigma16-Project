@@ -1,0 +1,120 @@
+;-----------------------------------------------------------------------
+; Sigma16 program BarChart
+; Computer Systems 1 Assessed Exercise
+; Your name, matriculation number, and Lab group, date
+; Your course (CS1Q or CS1S)
+
+; *** Starter file ***  change the filename to BarChart.asm.txt
+
+;-----------------------------------------------------------------------
+; Status report
+
+; Say what the status of your program is.  This is not documentation
+; of the program; it says what the status is.
+
+;-----------------------------------------------------------------------
+
+; This program prints a bar chart showing the values in an array x
+; containing a sequence of n integers.  There is also an integer limit
+; that is used to limit the length of output lines.
+
+; There is one line of output for each element of x, consisting of a
+; row of asterisks (*).  Normally, the number of asterisks in line is
+; x[i].  However, if x[i] is negative, then a minus sign is printed
+; instead of asterisks.  Furthermore, the number of asterisks printed
+; must never exceed limit.  If x[i] > limit then only limit asterisks
+; are printed, and they are followed by a greater-than sign (>) which
+; indicates that the output was truncated.
+
+;-----------------------------------------------------------------------
+; High level algorithm
+; 
+; for i := 0 to n-1
+;    k := 0
+;    if x[i] < 0
+;       then outbuf[k] := '-'
+;            k := k + 1
+;       else
+;          while k < x[i] && k < limit do
+;              outbuf[k] := '*'
+;              k := k + 1
+;          if k < x[i]
+;             then outbuf[k] := '>'
+;                  k := k + 1
+;    outbuf[k] := newline character
+;    k := k+1
+;    write outbuf with length = k
+
+;-----------------------------------------------------------------------
+; Intermediate level algorithm
+
+; (This is the "goto form" of the program.  It's written in high level
+;  language notation but limited to assignment statements, goto Label,
+;  if condition then goto Label, write.)
+
+
+;-----------------------------------------------------------------------
+; Assembly language implementation
+
+-- Instructions go here, with proper comments
+
+
+;-----------------------------------------------------------------------
+; Constants - initial values should not be changed
+
+minus   data  $002d   ; code for '-'
+gt      data  $003e   ; code for '>'
+newline data  $000a   ; code for newline
+star    data  $002a   ; code for '*'
+
+;-----------------------------------------------------------------------
+; Variables - these initial values may be changed
+
+limit   data    10    ; maximum number of * to write
+
+; x is the input: an array of n values to display in histogram
+n       data    15    ; size of array x
+x       data     1    ; x[0]
+        data     2
+        data     0
+        data     3
+        data    -2
+        data     7
+        data     8
+        data     9
+        data    10
+        data    11
+        data    12
+        data    50
+        data     3
+        data     2
+        data     1
+
+;-----------------------------------------------------------------------
+; Output buffer
+outbuf  data  $0000   ; outbuf[0]
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000

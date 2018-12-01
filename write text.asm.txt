@@ -1,0 +1,14 @@
+; write out (size = k)
+
+lea R1,2[R0]      ; trap code: write 
+lea R2,animal[R0] ; address of string to print 
+load R3,k[R0]     ; string size = k 
+trap R1,R2,R3     ; write out (size = k)
+trap R0,R0,R0     ; terminate
+
+k data 4 ; length of animal    ; animal = string "cat"
+
+animal data 99     ; character code for ’c’ 
+       data 97     ; character code for ’a’ 
+       data 116    ; character code for ’t’ 
+       data 10     ; character code for newline

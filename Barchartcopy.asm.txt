@@ -1,0 +1,222 @@
+;-----------------------------------------------------------------------
+; Sigma16 program BarChart
+; Computer Systems 1 Assessed Exercise
+; Quentin Deligny, 2262655D, LB02, Started 11/03/2017, Due 24/03/2017
+; CS1S
+
+; *** BarChart.asm.txt ***
+
+
+;-----------------------------------------------------------------------
+; Status report
+
+; Completed
+
+;-----------------------------------------------------------------------
+
+; This program prints a bar chart showing the values in an array x
+; containing a sequence of n integers.  There is also an integer limit
+; that is used to limit the length of output lines.
+
+; There is one line of output for each element of x, consisting of a
+; row of asterisks (*).  Normally, the number of asterisks in line is
+; x[i].  However, if x[i] is negative, then a minus sign is printed
+; instead of asterisks.  Furthermore, the number of asterisks printed
+; must never exceed limit.  If x[i] > limit then only limit asterisks
+; are printed, and they are followed by a greater-than sign (>) which
+; indicates that the output was truncated.
+
+;-----------------------------------------------------------------------
+; High level algorithm
+; 
+; for i := 0 to n-1
+;    k := 0
+;    if x[i] < 0
+;       then outbuf[k] := '-'
+;            k := k + 1
+;       else
+;          while k < x[i] && k < limit do
+;              outbuf[k] := '*'
+;              k := k + 1
+;          if k < x[i]
+;             then outbuf[k] := '>'
+;                  k := k + 1
+;    outbuf[k] := newline character
+;    k := k+1
+;    write outbuf with length = k
+
+;-----------------------------------------------------------------------
+; Intermediate level algorithm - followed by the Assembly language implementation
+;
+; (This is the "goto form" of the program.  It's written in high level
+;  language notation but limited to assignment statements, goto Label,
+;  if condition then goto Label, write.)
+;
+; Register Usage:
+; R1 := i
+; R2 := n
+; R3 := n - 1
+; R4 := k
+; R5 := x[i]
+; R6 := outbuf[k]
+; R7 := outbuf[0]
+; R8 := limit
+; R13 := 2
+; R14 := 1
+;
+; i := 0                                    
+ lea R1,0[R0]                               ; R1 := 0, i starts with 0: x[i] is now the first value in the array x.
+ load R2,n[R0]                              ; R2 := n, 'n' being the size of the array x.
+ lea R14,1[R0]                              ; R14 := 1, for future calculations.
+ sub R3,R2,R14                              ; R3 := n - 1
+ lea R13,2[R0]                              ; R13 is used as the code for the write request.
+ load R8,limit[R0]                          ; R8 := limit
+;
+; loop
+;     if (i > n - 1) then goto done         
+;     k := 0                                
+;     if (x[i] < 0) then goto neg           
+;     loop2                                 
+;         if (k < limit) then goto check    
+;     if (k < x[i]) then goto toobig        
+;     goto next                             
+loop
+    cmp R1,R3
+    jumpgt done[R0]                         ; in this case, x[i] no longer represents a value in the array x, so the program jumps to 'done'.
+
+    lea R4,0[R0]                            ; R4 := 0, each new line starts with 0 characters, so k is 0.
+
+    load R5,x[R1]                           ; R5 := x[i], the address is the displacement + the value of i.
+    load R6,outbuf[R4]                      ; R6 := outbuf[k]
+    cmp R5,R0
+    jumplt neg[R0]                          ; If R5 < 0, then x[i] is negative.
+
+secloop                                     ; this corresponds the the second loop, the while loop.
+    cmp R4,R8
+    jumplt check[R0]                        ; if the first statement is verified (k has not reached the limit), then we go the the second statement.
+    cmp R4,R5
+    jumplt toobig[R0]                       ; k has reached the limit, so we check to see if it is still smaller than x[i].
+    jump next[R0]                           ; this case is when x[i] and the limit are equal, and k is greater than both: the line is complete.
+
+
+; next
+;     outbuf[k] := newline character        
+;     k := k + 1                           
+;     i := i + 1
+;     write outbuf with lenth = k          
+;     goto loop
+next
+    lea R6,newline[R0]                     ; newline added to the outbuf array.
+    add R4,R4,R14                           ; k is incremented by 1.
+    add R1,R1,R14                           ; i is incremented by 1.
+    lea R7,outbuf[R0]                       ; R7 := outbuf[0], used as a pointer to the outbuf array.
+    trap R13,R7,R4                          ; We write the outbuf string with lenght R4 (=k).
+    jump loop[R0]
+
+; neg                                      
+;     outbuf[k] := '-'                      
+;     k := k + 1
+;     goto next                             
+neg
+    load R6,minus[R0]                       ; the line becomes '-'.
+    store R6,outbuf[R4]                     ; R6 contains the code for '-' and the outbuf is updated.
+    add R4,R4,R14                           ; k is incremented by 1.
+    jump next[R0]                           ; The line is complete, moves on to the next step of the program.
+
+
+
+; check                                     
+;     if (k < x[i]) then goto addstar       
+;     goto next                             
+check                                       ; Second statement of the while loop.
+    cmp R4,R5
+    jumplt addstar[R0]                      ; if both statements are true, then we will add a star to the line.
+    jump next[R0]                           ; k is smaller than the limit but greater than x[i], then the line is complete, goes to next step.
+
+
+; addstar
+;     outbuf[k] := '*'                      
+;     k := k + 1                             
+;     goto loop2                      
+addstar
+    load R6,star[R0]                        ; a star is added to the line.
+    store R6,outbuf[R4]                     ; R6 contains the code for '-' and the outbuf is updated.
+    add R4,R4,R14                           ; k is incremented by 1.
+    jump secloop[R0]                        ; We have added a star, we keep looping in the while loop.
+
+; toobig                                    
+;     outbuf[k] := '>'                      
+;     k := k + 1
+;     goto next
+toobig                                      ; limit reached but k is still smaller than x[i].         
+    load R6,gt[R0]                          ; a > sign is added to the line.
+    store R6,outbuf[R4]                     ; R6 contains the code for '-' and the outbuf is updated.
+    add R4,R4,R14                           ; k is incremented by 1.
+    jump next[R0]                           ; the line is now complete since the outbuf's length has reached the limit.
+
+
+; done
+;     terminate                             
+done
+    trap R0,R0,R0                          ; program terminates when all values in the x array have been dealt with.
+
+;-----------------------------------------------------------------------
+
+; Constants - initial values should not be changed
+
+minus   data  $002d   ; code for '-'
+gt      data  $003e   ; code for '>'
+newline data  $000a   ; code for newline
+star    data  $002a   ; code for '*'
+
+;-----------------------------------------------------------------------
+; Variables - these initial values may be changed
+
+limit   data    10    ; maximum number of * to write
+
+; x is the input: an array of n values to display in histogram
+n       data    15    ; size of array x
+x       data     -1    ; x[0]
+        data     2
+        data     0
+        data     3
+        data    -2
+        data     7
+        data     8
+        data     9
+        data    10
+        data    11
+        data    12
+        data    50
+        data     3
+        data     2
+        data     1
+
+;-----------------------------------------------------------------------
+; Output buffer
+outbuf  data  $0000   ; outbuf[0]
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
+        data  $0000
